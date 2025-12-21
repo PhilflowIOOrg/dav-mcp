@@ -163,6 +163,7 @@ The GitHub Actions workflows expect the following secrets/variables:
 | `GH_PAT_TOKEN` | Secret (required for Dependabot) | PAT with `read:packages` to authenticate to the GitHub npm registry (`npm.pkg.github.com`). |
 
 - Node.js version for CI workflows is read from the `engines.node` field in `package.json` so Dependabot-managed updates stay in sync.
+- Dependabot is configured to update both direct and indirect npm dependencies in `package.json`/`package-lock.json` through the weekly npm check.
 
 > **PAT scopes:** `GHCR_TOKEN` and `GH_PACKAGES_TOKEN` should include `write:packages` and `read:packages`. `GH_PAT_TOKEN` only needs `read:packages` for Dependabot.
 
