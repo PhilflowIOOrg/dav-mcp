@@ -30,6 +30,24 @@ jobs:
           NODE_VERSION=$(node -p "require('./package.json').engines.node")
           echo "version=${NODE_VERSION}" >> "$GITHUB_OUTPUT"
 
+      - name: Determine image version tag
+        id: image-version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            LAST_TAG=$(git tag -l 'v*' --sort=-v:refname | head -n1)
+            if [[ -z "$LAST_TAG" ]]; then
+              VERSION="0.1.0"
+            else
+              BASE="${LAST_TAG#v}"
+              IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE"
+              MINOR=$((MINOR+1))
+              VERSION="${MAJOR}.${MINOR}.0"
+            fi
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
@@ -64,6 +82,7 @@ jobs:
             ${{ vars.GHCR_REGISTRY || 'ghcr.io' }}/${{ github.repository }}
             ${{ vars.GITHUB_PACKAGES_REGISTRY || 'docker.pkg.github.com' }}/${{ github.repository }}/dav-mcp
           tags: |
+            type=raw,value=${{ steps.image-version.outputs.version }}
             type=ref,event=branch
             type=ref,event=tag
             type=raw,value=latest,enable={{is_default_branch}}
