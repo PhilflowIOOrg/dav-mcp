@@ -38,6 +38,10 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    allow:
+      - dependency-name: "node"
+        versions:
+          - "24.x"
     commit-message:
       prefix: "deps"
       include: "scope"
