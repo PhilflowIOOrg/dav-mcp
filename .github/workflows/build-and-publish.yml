@@ -20,6 +20,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Determine Node.js version
         id: node-version
