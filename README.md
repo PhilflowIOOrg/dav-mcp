@@ -154,7 +154,6 @@ The GitHub Actions workflows expect the following secrets/variables:
 
 | Name | Type | Purpose |
 | ---- | ---- | ------- |
-| `GHCR_TOKEN` | Secret (required) | Personal Access Token (PAT) with `write:packages` + `read:packages` to push to GHCR. |
 | `GHCR_USERNAME` | Secret (optional) | Username for GHCR login. Defaults to `${{ github.actor }}` if not set. |
 | `GH_PACKAGES_TOKEN` | Secret (required) | PAT with `write:packages` + `read:packages` for the classic GitHub Packages Docker registry. |
 | `GH_PACKAGES_USERNAME` | Secret (optional) | Username for GitHub Packages login. Defaults to `${{ github.actor }}` if not set. |
