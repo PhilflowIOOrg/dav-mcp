@@ -62,7 +62,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
-    "express-rate-limit": "^8.1.0",
+    "express-rate-limit": "^8.2.1",
     "ical.js": "^2.2.1",
     "tsdav": "github:PhilflowIO/tsdav#master",
     "tsdav-utils": "github:PhilflowIO/tsdav-utils#main",
