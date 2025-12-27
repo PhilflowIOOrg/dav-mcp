@@ -74,6 +74,13 @@ jobs:
           username: ${{ secrets.GH_PACKAGES_USERNAME || github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.DOCKERHUB_REGISTRY || 'docker.io' }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -81,6 +88,7 @@ jobs:
           images: |
             ${{ vars.GHCR_REGISTRY || 'ghcr.io' }}/${{ github.repository }}
             ${{ vars.GITHUB_PACKAGES_REGISTRY || 'docker.pkg.github.com' }}/${{ github.repository }}/dav-mcp
+            ${{ vars.DOCKERHUB_REGISTRY || 'docker.io' }}/${{ secrets.DOCKERHUB_USERNAME }}/dav-mcp
           tags: |
             type=raw,value=${{ steps.image-version.outputs.version }}
             type=ref,event=branch
