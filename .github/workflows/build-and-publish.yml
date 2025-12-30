@@ -99,9 +99,9 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ vars.GHCR_REGISTRY || 'ghcr.io' }}/${{ github.repository }}
-            ${{ vars.GITHUB_PACKAGES_REGISTRY || 'docker.pkg.github.com' }}/${{ github.repository }}/dav-mcp
-            ${{ vars.DOCKERHUB_REGISTRY || 'docker.io' }}/${{ secrets.DOCKERHUB_USERNAME }}/dav-mcp
+            name=${{ vars.GHCR_REGISTRY || 'ghcr.io' }}/${{ github.repository }}
+            name=${{ vars.GITHUB_PACKAGES_REGISTRY || 'docker.pkg.github.com' }}/${{ github.repository }}/dav-mcp
+            name=${{ vars.DOCKERHUB_REGISTRY || 'docker.io' }}/${{ secrets.DOCKERHUB_USERNAME }}/dav-mcp,enable=${{ secrets.DOCKERHUB_USERNAME != '' && github.event_name != 'pull_request' }}
           tags: |
             type=raw,value=${{ steps.image-version.outputs.version }}
             type=ref,event=branch
