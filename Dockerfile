@@ -1,12 +1,17 @@
-FROM node:18-alpine
+FROM node:24-alpine
 
 WORKDIR /app
+
+# Install git and CA certificates for compatibility with previous image
+RUN apk add --no-cache git ca-certificates
 
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN rm -f package-lock.json && \
+    npm install --production --no-audit --no-fund && \
+    npm cache clean --force
 
 # Copy source code
 COPY src ./src

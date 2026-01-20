@@ -1,0 +1,119 @@
+name: Build and Publish
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    name: Build and push container images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Determine Node.js version
+        id: node-version
+        run: |
+          NODE_VERSION=$(node -p "require('./package.json').engines.node")
+          echo "version=${NODE_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Determine image version tag
+        id: image-version
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            BASE_VERSION=$(node -p "require('./package.json').version")
+            LAST_TAG=$(git tag -l 'v*' --sort=-v:refname | head -n1)
+            if [[ -z "$LAST_TAG" ]]; then
+              BASE="$BASE_VERSION"
+            else
+              BASE="${LAST_TAG#v}"
+            fi
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE"
+            if [[ -n "$PR_NUMBER" ]]; then
+              MINOR=$((MINOR + PR_NUMBER))
+            else
+              MINOR=$((MINOR + 1))
+            fi
+            VERSION="${MAJOR}.${MINOR}.0"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.GHCR_REGISTRY || 'ghcr.io' }}
+          username: ${{ secrets.GHCR_USERNAME || github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to GitHub Packages
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.GITHUB_PACKAGES_REGISTRY || 'docker.pkg.github.com' }}
+          username: ${{ secrets.GH_PACKAGES_USERNAME || github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.DOCKERHUB_REGISTRY || 'docker.io' }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            name=${{ vars.GHCR_REGISTRY || 'ghcr.io' }}/${{ github.repository }}
+            name=${{ vars.GITHUB_PACKAGES_REGISTRY || 'docker.pkg.github.com' }}/${{ github.repository }}/dav-mcp
+            name=${{ vars.DOCKERHUB_REGISTRY || 'docker.io' }}/${{ secrets.DOCKERHUB_USERNAME }}/dav-mcp,enable=${{ secrets.DOCKERHUB_USERNAME != '' && github.event_name != 'pull_request' }}
+          tags: |
+            type=raw,value=${{ steps.image-version.outputs.version }}
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64

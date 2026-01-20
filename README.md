@@ -160,6 +160,24 @@ Works with any CalDAV/CardDAV server that follows RFC 4791 and RFC 6352:
 - **iCloud** - Works with app-specific password
 - **Any RFC-compliant server** - Standard protocol support
 
+### CI/CD and Dependabot credentials
+
+The GitHub Actions workflows expect the following secrets/variables:
+
+| Name | Type | Purpose |
+| ---- | ---- | ------- |
+| `GHCR_USERNAME` | Secret (optional) | Username for GHCR login. Defaults to `${{ github.actor }}` if not set. |
+| `GH_PACKAGES_TOKEN` | Secret (required) | PAT with `write:packages` + `read:packages` for the classic GitHub Packages Docker registry. |
+| `GH_PACKAGES_USERNAME` | Secret (optional) | Username for GitHub Packages login. Defaults to `${{ github.actor }}` if not set. |
+| `GHCR_REGISTRY` | Repository variable (optional) | Override registry host for GHCR (defaults to `ghcr.io`). |
+| `GITHUB_PACKAGES_REGISTRY` | Repository variable (optional) | Override registry host for the legacy GitHub Packages Docker registry (defaults to `docker.pkg.github.com`). |
+| `GH_PAT_TOKEN` | Secret (required for Dependabot) | PAT with `read:packages` to authenticate to the GitHub npm registry (`npm.pkg.github.com`). |
+
+- Node.js version for CI workflows is read from the `engines.node` field in `package.json` so Dependabot-managed updates stay in sync.
+- Dependabot is configured to update both direct and indirect npm dependencies in `package.json`/`package-lock.json` through the weekly npm check.
+
+> **PAT scopes:** `GHCR_TOKEN` and `GH_PACKAGES_TOKEN` should include `write:packages` and `read:packages`. `GH_PAT_TOKEN` only needs `read:packages` for Dependabot.
+
 ---
 
 ## Google Calendar (OAuth2)
