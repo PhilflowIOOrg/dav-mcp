@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-01-20
+
+### Added
+- **CLI flags**: `--http` and `--port` flags for easier server startup
+  - `npx dav-mcp` → STDIO mode (default)
+  - `npx dav-mcp --http` → HTTP mode on port 3000
+  - `npx dav-mcp --http --port=8080` → HTTP mode with custom port
+
+### Changed
+- **README restructured** by user type (Claude Desktop, n8n, Docker)
+- **Simplified setup**: No git clone needed for most users, just `npx dav-mcp`
+- **Cleaned up `.env.example`**: Removed unnecessary `MCP_SERVER_NAME` and `MCP_SERVER_VERSION`
+
+## [3.0.0] - 2026-01-20
+
+### Breaking Changes
+- **Removed HTTP+SSE transport**: The deprecated `/sse` and `/messages` endpoints have been removed
+- **New transports**: Replaced with STDIO and Stateless HTTP transports
+- **n8n users**: Must update endpoint from `/sse` to `/mcp`
+
+### Added
+- **STDIO transport** (`src/server-stdio.js`): For local clients (Claude Desktop, Cursor, npx)
+- **Stateless HTTP transport** (`src/server-http.js`): For remote clients (n8n, cloud deployments)
+- **MIGRATION.md**: Upgrade guide for migrating from v2.x
+
+### Changed
+- Default `npm start` now runs STDIO server (was SSE)
+- Logger now writes to stderr in STDIO mode (preserves stdout for JSON-RPC)
+- Dockerfile updated to use HTTP server
+- Simplified HTTP server (stateless, no session management)
+
+### Removed
+- `src/index.js` (old HTTP+SSE server)
+- Session management in HTTP transport
+- `/sse` endpoint
+- `/messages` endpoint
+
+### Migration
+See [MIGRATION.md](MIGRATION.md) for detailed upgrade instructions.
+
 ## [2.7.0] - 2025-10-30
 
 ### Added
